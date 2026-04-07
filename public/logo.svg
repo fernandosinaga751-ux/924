@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- White background circle -->
+  <circle cx="200" cy="200" r="198" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+
+  <!-- Outer dark navy ring -->
+  <circle cx="200" cy="200" r="192" fill="none" stroke="#1a2d5a" stroke-width="18"/>
+
+  <!-- Inner ring accent -->
+  <circle cx="200" cy="200" r="175" fill="none" stroke="#1a2d5a" stroke-width="3"/>
+
+  <!-- Top arc text "924 RENTAL MOBIL" -->
+  <path id="topArc" d="M 60,200 A 140,140 0 0,1 340,200" fill="none"/>
+  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="22" fill="white" letter-spacing="3">
+    <textPath href="#topArc" startOffset="8%">924 RENTAL MOBIL</textPath>
+  </text>
+
+  <!-- Bottom arc text "MEDAN" -->
+  <path id="bottomArc" d="M 95,260 A 130,130 0 0,0 305,260" fill="none"/>
+  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="22" fill="white" letter-spacing="6">
+    <textPath href="#bottomArc" startOffset="22%">MEDAN</textPath>
+  </text>
+
+  <!-- Main center text "924" -->
+  <text x="200" y="152" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#1a2d5a" text-anchor="middle" letter-spacing="-2">924</text>
+
+  <!-- "RENTAL MOBIL" text -->
+  <text x="200" y="183" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="#1a2d5a" text-anchor="middle" letter-spacing="1">RENTAL MOBIL</text>
+
+  <!-- "MEDAN" orange accent text -->
+  <text x="200" y="213" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="24" fill="#f47920" text-anchor="middle" letter-spacing="4">MEDAN</text>
+
+  <!-- Horizontal line above car -->
+  <line x1="68" y1="222" x2="332" y2="222" stroke="#1a2d5a" stroke-width="2.5"/>
+
+  <!-- Car body SVG (simplified SUV) -->
+  <!-- Car main body -->
+  <rect x="100" y="248" width="200" height="45" rx="8" fill="#1a2d5a"/>
+  <!-- Car roof -->
+  <path d="M 130,248 L 150,222 L 250,222 L 270,248 Z" fill="#1a2d5a"/>
+  <!-- Windshield -->
+  <path d="M 155,246 L 168,226 L 232,226 L 245,246 Z" fill="#7eb8e8" opacity="0.8"/>
+  <!-- Side window -->
+  <rect x="152" y="232" width="35" height="14" rx="2" fill="#7eb8e8" opacity="0.7"/>
+  <rect x="195" y="232" width="42" height="14" rx="2" fill="#7eb8e8" opacity="0.7"/>
+  <!-- Wheel arches -->
+  <circle cx="145" cy="293" r="26" fill="#0d1e3d"/>
+  <circle cx="255" cy="293" r="26" fill="#0d1e3d"/>
+  <!-- Wheels -->
+  <circle cx="145" cy="293" r="19" fill="#333"/>
+  <circle cx="255" cy="293" r="19" fill="#333"/>
+  <circle cx="145" cy="293" r="9" fill="#aaa"/>
+  <circle cx="255" cy="293" r="9" fill="#aaa"/>
+  <!-- Headlight -->
+  <rect x="295" y="255" width="12" height="8" rx="2" fill="#f47920"/>
+  <!-- Tail light -->
+  <rect x="93" y="255" width="12" height="8" rx="2" fill="#f47920"/>
+  <!-- Orange speed lines -->
+  <path d="M 60,265 L 95,262" stroke="#f47920" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 50,275 L 95,272" stroke="#f47920" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 55,285 L 95,283" stroke="#f47920" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Road lines -->
+  <line x1="110" y1="320" x2="290" y2="320" stroke="#1a2d5a" stroke-width="2" stroke-dasharray="15,8"/>
+</svg>
