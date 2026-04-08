@@ -23,18 +23,21 @@ export function useFirebase() {
 
   // ── seed data jika Firestore masih kosong ────────────────────
   useEffect(() => {
+    // Fallback timeout: paksa lanjut setelah 8 detik walau error
+    const timeout = setTimeout(() => {
+      setSeeded(true);
+      setLoading(false);
+    }, 8000);
+
     async function seed() {
       try {
         const settingsSnap = await getDoc(doc(db, "config", "settings"));
         if (!settingsSnap.exists()) {
-          // Seed settings & seo
           await setDoc(doc(db, "config", "settings"), SEED_SETTINGS);
           await setDoc(doc(db, "config", "seo"),      SEED_SEO);
-          // Seed cars
           for (const car of SEED_CARS) {
             await addDoc(collection(db, "cars"), car);
           }
-          // Seed articles
           for (const article of SEED_ARTICLES) {
             await addDoc(collection(db, "articles"), article);
           }
@@ -42,56 +45,49 @@ export function useFirebase() {
       } catch (err) {
         console.error("Seed error:", err);
       } finally {
+        clearTimeout(timeout);
         setSeeded(true);
       }
     }
     seed();
+    return () => clearTimeout(timeout);
   }, []);
 
   // ── real-time listeners (aktif setelah seed selesai) ────────
   useEffect(() => {
     if (!seeded) return;
 
+    // Fallback: paksa loading selesai setelah 5 detik
+    const timeout = setTimeout(() => setLoading(false), 5000);
+
     let count = 0;
-    const done = () => { count++; if (count >= 4) setLoading(false); };
+    const done = () => { count++; if (count >= 4) { clearTimeout(timeout); setLoading(false); } };
 
     const unsubCars = onSnapshot(
       query(collection(db, "cars"), orderBy("order", "asc")),
-      (snap) => {
-        setCars(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        done();
-      },
-      (err) => { console.error("cars:", err); done(); }
+      (snap) => { setCars(snap.docs.map(d => ({ id: d.id, ...d.data() }))); done(); },
+      (err)  => { console.error("cars:", err); done(); }
     );
 
     const unsubArticles = onSnapshot(
       query(collection(db, "articles"), orderBy("order", "asc")),
-      (snap) => {
-        setArticles(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        done();
-      },
-      (err) => { console.error("articles:", err); done(); }
+      (snap) => { setArticles(snap.docs.map(d => ({ id: d.id, ...d.data() }))); done(); },
+      (err)  => { console.error("articles:", err); done(); }
     );
 
     const unsubSettings = onSnapshot(
       doc(db, "config", "settings"),
-      (snap) => {
-        if (snap.exists()) setSettings(snap.data());
-        done();
-      },
-      (err) => { console.error("settings:", err); done(); }
+      (snap) => { if (snap.exists()) setSettings(snap.data()); done(); },
+      (err)  => { console.error("settings:", err); done(); }
     );
 
     const unsubSeo = onSnapshot(
       doc(db, "config", "seo"),
-      (snap) => {
-        if (snap.exists()) setSeoState(snap.data());
-        done();
-      },
-      (err) => { console.error("seo:", err); done(); }
+      (snap) => { if (snap.exists()) setSeoState(snap.data()); done(); },
+      (err)  => { console.error("seo:", err); done(); }
     );
 
-    return () => { unsubCars(); unsubArticles(); unsubSettings(); unsubSeo(); };
+    return () => { clearTimeout(timeout); unsubCars(); unsubArticles(); unsubSettings(); unsubSeo(); };
   }, [seeded]);
 
   // ── CARS CRUD ────────────────────────────────────────────────
