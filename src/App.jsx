@@ -37,27 +37,14 @@ function updateSEO(seo) {
   set('meta[property="og:title"]',       "content", seo.ogTitle    || seo.siteTitle || "");
   set('meta[property="og:description"]', "content", seo.ogDesc     || seo.metaDesc  || "");
   set('link[rel="canonical"]',           "href",    seo.canonical  || "");
-  // Google Analytics
-  if (seo.ga && !document.getElementById("ga-script")) {
-    const s = document.createElement("script");
-    s.id  = "ga-script";
-    s.src = `https://www.googletagmanager.com/gtag/js?id=${seo.ga}`;
-    s.async = true;
-    document.head.appendChild(s);
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
-    gtag("js", new Date());
-    gtag("config", seo.ga);
-  }
 }
 
 // ── Public Site wrapper ─────────────────────────────────────
 function PublicSite({ firebase, setMode }) {
-  const { cars, articles, settings, seo, incrementView } = firebase;
+  const { cars, articles, settings, seo, incrementView, loading } = firebase;
   const [page,       setPage]       = useState("home");
   const [selArticle, setSelArticle] = useState(null);
 
-  // Update SEO meta tags whenever seo settings change
   useEffect(() => { updateSEO(seo); }, [seo]);
 
   const openArticle = async (article) => {
@@ -71,57 +58,47 @@ function PublicSite({ firebase, setMode }) {
     <div style={{ background: "#07070f", minHeight: "100vh", fontFamily: "inherit", color: "white" }}>
       <Nav settings={settings} page={page} setPage={v => { setPage(v); window.scrollTo(0, 0); }} />
 
-      {/* HOME */}
-      {page === "home" && (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+          <Spinner />
+        </div>
+      ) : (
         <>
-          <Hero     settings={settings} cars={cars || []} setPage={setPage} />
-          <Fleet    cars={cars || []} settings={settings} mini setPage={setPage} />
-          <Services />
-          <WhyUs />
-          <Testimonials />
-          <ArticleList articles={articles || []} setPage={setPage} setSelArticle={openArticle} mini />
-          <Contact settings={settings} />
+          {page === "home" && (
+            <>
+              <Hero     settings={settings} cars={cars || []} setPage={setPage} />
+              <Fleet    cars={cars || []} settings={settings} mini setPage={setPage} />
+              <Services />
+              <WhyUs />
+              <Testimonials />
+              <ArticleList articles={articles || []} setPage={setPage} setSelArticle={openArticle} mini />
+              <Contact settings={settings} />
+            </>
+          )}
+          {page === "fleet"   && <Fleet cars={cars || []} settings={settings} setPage={setPage} />}
+          {page === "services" && <Services />}
+          {page === "articles" && <ArticleList articles={articles || []} setPage={setPage} setSelArticle={openArticle} />}
+          {page === "article"  && <ArticleDetail article={selArticle} setPage={setPage} settings={settings} />}
+          {page === "contact"  && <Contact settings={settings} />}
         </>
       )}
 
-      {/* FLEET */}
-      {page === "fleet" && (
-        <Fleet cars={cars || []} settings={settings} setPage={setPage} />
-      )}
-
-      {/* SERVICES */}
-      {page === "services" && <Services />}
-
-      {/* ARTICLES */}
-      {page === "articles" && (
-        <ArticleList articles={articles || []} setPage={setPage} setSelArticle={openArticle} />
-      )}
-
-      {/* ARTICLE DETAIL */}
-      {page === "article" && (
-        <ArticleDetail article={selArticle} setPage={setPage} settings={settings} />
-      )}
-
-      {/* CONTACT */}
-      {page === "contact" && <Contact settings={settings} />}
-
       <Footer settings={settings} setPage={v => { setPage(v); window.scrollTo(0, 0); }} />
 
-      {/* WhatsApp floating button */}
       {settings?.wa && (
         <WAButton wa={settings.wa} waMsg={settings.waMsg || ""} />
       )}
 
-      {/* Admin shortcut button */}
+      {/* Admin shortcut button — selalu tampil */}
       <button
         onClick={() => setMode("admin")}
         title="Panel Admin"
         style={{
-          position: "fixed", bottom: 24, left: 20, zIndex: 998,
-          background: "rgba(10,10,22,0.9)", color: "#444",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 8, padding: "7px 14px",
-          fontSize: 11, cursor: "pointer", fontWeight: 600,
+          position: "fixed", bottom: 80, left: 20, zIndex: 9999,
+          background: "rgba(10,10,22,0.95)", color: "#aaa",
+          border: "1px solid rgba(255,255,255,0.2)",
+          borderRadius: 8, padding: "8px 16px",
+          fontSize: 12, cursor: "pointer", fontWeight: 700,
           backdropFilter: "blur(8px)",
         }}>
         ⚙ Admin
@@ -132,25 +109,24 @@ function PublicSite({ firebase, setMode }) {
 
 // ── App Root ────────────────────────────────────────────────
 export default function App() {
-  const [mode,      setMode]      = useState("public"); // "public" | "admin" | "login"
-  const [authUser,  setAuthUser]  = useState(undefined); // undefined = loading
+  const [mode,      setMode]      = useState("public");
+  const [authUser,  setAuthUser]  = useState(undefined); // undefined = auth loading
   const [adminPage, setAdminPage] = useState("dashboard");
 
-  // Firebase data hook
   const firebase = useFirebase();
 
-  // Listen to Firebase Auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setAuthUser(user || null);
-      // If user just logged out while in admin, go back to public
       if (!user && mode === "admin") setMode("public");
     });
-    return () => unsub();
+    // Fallback: jika auth tidak merespons dalam 5 detik
+    const timeout = setTimeout(() => setAuthUser(prev => prev === undefined ? null : prev), 5000);
+    return () => { unsub(); clearTimeout(timeout); };
   }, [mode]);
 
-  // Wait for Firebase Auth to initialise
-  if (authUser === undefined || firebase.loading) return <Spinner />;
+  // Hanya spinner saat auth belum diketahui (max 5 detik)
+  if (authUser === undefined) return <Spinner />;
 
   // ── ADMIN MODE ──
   if (mode === "admin" || mode === "login") {
